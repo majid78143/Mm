@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — MJ DEVELOPER</title>
+<link rel="icon" href="/static/logo.svg">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  body{ display:flex; min-height:100vh; }
+  .admin-sidebar{ width:240px; flex-shrink:0; background:var(--bg-elevated); border-right:1px solid var(--line); padding:24px 18px; position:sticky; top:0; height:100vh; }
+  .admin-sidebar a{ display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:var(--radius-s); color:var(--ink-dim); font-size:14px; margin-bottom:4px; }
+  .admin-sidebar a:hover, .admin-sidebar a.active{ background:var(--accent-soft); color:var(--ink); }
+  .admin-main{ flex:1; padding: 32px; max-width: 1200px; }
+  .admin-topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:36px; }
+  .stat-card{ background:var(--bg-elevated); border:1px solid var(--line); border-radius:var(--radius-m); padding:22px; }
+  .stat-card .label{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; }
+  .stat-card .value{ font-family:var(--font-display); font-size:30px; margin-top:8px; }
+  .panel{ background:var(--bg-elevated); border:1px solid var(--line); border-radius:var(--radius-m); padding:24px; margin-bottom:24px; }
+  .panel h3{ font-size:16px; margin-bottom:16px; }
+  .row-item{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .row-item:last-child{ border-bottom:none; }
+  .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-faint); }
+  @media (max-width: 900px){ .admin-sidebar{ display:none; } .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<aside class="admin-sidebar">
+  <div class="brand" style="margin-bottom:28px;"><img src="/static/logo.svg" class="brand-logo" alt=""> MJ ADMIN</div>
+  <a href="#" class="active">Overview</a>
+  <a href="#">New Requests</a>
+  <a href="#">Projects</a>
+  <a href="#">Customers</a>
+  <a href="#">Messages</a>
+  <a href="#">Reviews</a>
+  <a href="#">Private Pages</a>
+  <a href="#">Services</a>
+  <a href="#">Settings</a>
+  <a href="#" id="admin-logout" style="margin-top:24px;color:var(--danger);">Log out</a>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <div><span class="eyebrow">Admin</span><h2 style="margin-top:8px;">Overview</h2></div>
+    <button class="theme-toggle" aria-label="Toggle theme">◐</button>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label">Total Customers</div><div class="value" id="stat-customers">0</div></div>
+    <div class="stat-card"><div class="label">New Orders</div><div class="value" id="stat-orders">0</div></div>
+    <div class="stat-card"><div class="label">Active Projects</div><div class="value" id="stat-active">0</div></div>
+    <div class="stat-card"><div class="label">Completed Projects</div><div class="value" id="stat-completed">0</div></div>
+  </div>
+
+  <div class="panel">
+    <h3>New Requests</h3>
+    <div id="requests-list"><div class="empty-state">No new project requests yet. New submissions will appear here in real time.</div></div>
+  </div>
+
+  <div class="panel">
+    <h3>Recent Activity</h3>
+    <div id="activity-list"><div class="empty-state">Activity from orders, messages and deliveries will appear here.</div></div>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="/static/firebase-config.js"></script>
+<script src="/static/app.js"></script>
+<script>
+document.getElementById('admin-logout').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await fetch('/admin/logout', { method: 'POST' });
+  window.location.href = '/admin/login';
+});
+
+const fb = window.initFirebaseAuth?.();
+if (fb){
+  const db = fb.database();
+  db.ref('profiles').on('value', snap => {
+    document.getElementById('stat-customers').textContent = snap.numChildren();
+  });
+  db.ref('orders').on('value', snap => {
+    let orders = 0, active = 0, completed = 0;
+    snap.forEach(child => {
+      const o = child.val();
+      orders++;
+      if (o.status === 'Completed' || o.status === 'Delivered') completed++;
+      else if (o.status) active++;
+    });
+    document.getElementById('stat-orders').textContent = orders;
+    document.getElementById('stat-active').textContent = active;
+    document.getElementById('stat-completed').textContent = completed;
+
+    const list = document.getElementById('requests-list');
+    const pending = [];
+    snap.forEach(child => { if ((child.val().status || '') === 'Requirement Submitted') pending.push({ id: child.key, ...child.val() }); });
+    if (pending.length){
+      list.innerHTML = pending.slice(0,6).map(p => `
+        <div class="row-item"><span>${p.projectName || 'Untitled project'} · ${p.projectType || ''}</span><span class="mono" style="font-size:12px;color:var(--ink-faint);">${p.id}</span></div>
+      `).join('');
+    }
+  });
+}
+</script>
+</body>
+</html>

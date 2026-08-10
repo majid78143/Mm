@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — MJ DEVELOPER</title>
+<link rel="icon" href="/static/logo.svg">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="site-header scrolled">
+  <div class="container header-row">
+    <a href="/" class="brand"><img src="/static/logo.svg" class="brand-logo" alt=""> MJ DEVELOPER</a>
+    <div class="header-actions">
+      <button class="theme-toggle" aria-label="Toggle theme">◐</button>
+      <a href="#" id="logout-link" class="btn btn-ghost">Log out</a>
+    </div>
+  </div>
+</header>
+<div class="container" style="padding-top:130px;padding-bottom:80px;">
+  <span class="eyebrow">Client Dashboard</span>
+  <h1 id="welcome-msg" style="margin-top:14px;">Welcome</h1>
+  <p>Your projects, messages and deliveries will appear here.</p>
+  <div class="panel-empty" style="border:1px solid var(--line);border-radius:var(--radius-m);padding:40px;text-align:center;color:var(--ink-faint);margin-top:24px;">
+    No active projects yet. Starting a project from the homepage will create your first order here.
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="/static/firebase-config.js"></script>
+<script src="/static/app.js"></script>
+<script>
+const fb = window.initFirebaseAuth?.();
+if (fb){
+  fb.auth().onAuthStateChanged(user => {
+    if (!user){ window.location.href = '/login'; return; }
+    document.getElementById('welcome-msg').textContent = 'Welcome, ' + (user.displayName || user.email);
+  });
+  document.getElementById('logout-link').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await fb.auth().signOut();
+    window.location.href = '/login';
+  });
+}
+</script>
+</body>
+</html>
