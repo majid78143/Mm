@@ -1,0 +1,14 @@
+{
+  "name": "mj-developer-studio",
+  "version": "1.0.0",
+  "description": "MJ DEVELOPER — premium custom development studio website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5"
+  }
+}

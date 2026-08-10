@@ -1,0 +1,65 @@
+{
+  "rules": {
+    "usernames": {
+      ".read": true,
+      "$username": {
+        ".write": "!data.exists() && newData.child('uid').val() === auth.uid"
+      }
+    },
+    "profiles": {
+      "$uid": {
+        ".read": "auth !== null && auth.uid === $uid",
+        ".write": "auth !== null && auth.uid === $uid"
+      }
+    },
+    "orders": {
+      ".read": "auth !== null",
+      "$orderId": {
+        ".read": "auth !== null && (data.child('uid').val() === auth.uid)",
+        ".write": "auth !== null && (!data.exists() ? newData.child('uid').val() === auth.uid : data.child('uid').val() === auth.uid)"
+      }
+    },
+    "messages": {
+      "$orderId": {
+        ".read": "auth !== null",
+        ".write": "auth !== null"
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth !== null && auth.uid === $uid",
+        ".write": "auth !== null && auth.uid === $uid"
+      }
+    },
+    "privatePages": {
+      "$pageId": {
+        ".read": false,
+        ".write": false,
+        "meta": {
+          ".read": "auth !== null"
+        }
+      }
+    },
+    "activityLogs": {
+      ".read": "auth !== null",
+      ".write": "auth !== null"
+    },
+    "settings": {
+      ".read": true,
+      ".write": false
+    },
+    "services": {
+      ".read": true,
+      ".write": false
+    },
+    "deliveries": {
+      "$orderId": {
+        ".read": "auth !== null && data.child('uid').val() === auth.uid"
+      }
+    },
+    "adminData": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
